@@ -17,8 +17,10 @@ use serde::Deserialize;
     F: Option<String>
 }
 
-fn example() -> Result<(), Box<dyn Error>> {
+fn example() -> Result<Vec<Record>, Box<dyn Error>> {
     let mut rdr = csv::Reader::from_reader(io::stdin());
+        let mut records = vec![];
+    
     for result in rdr.deserialize() {
         // Notice that we need to provide a type hint for automatic
         // deserialization.
@@ -26,23 +28,38 @@ fn example() -> Result<(), Box<dyn Error>> {
         // println!("{:?}", record);
 
     
+
+    
         if let Some(data) = record{
             let column = parse_column(data);
-            println!("{:?}", column)
+
+            records.push(column);
+            
 
         }
     }
-    Ok(())
+    Ok(records)
 
     
 }
 
 fn main() {
-    if let Err(err) = example() {
-        println!("error running example: {}", err);
-        process::exit(1);
+    if let Ok(err) = example() {
+        
+
+    test_one(err);
+
     }
-}
+    
+      if let  Err(err) = example(){
+             println!("error running example: {}", err);
+         process::exit(1);
+
+        }
+    }
+
+
+
 
 fn parse_column(input: String) -> Record {
 
@@ -56,14 +73,7 @@ fn parse_column(input: String) -> Record {
     let e :i32= record_fields[4].trim().parse().unwrap_or(0);
 
 
-  /* Record{
-    A: Some(record_fields[0].to_string()),
-    B: Some(record_fields[1].to_string()),
-    C: Some(record_fields[2].to_string()),
-    D: Some(d),
-    E: Some(e),
-    F: Some(record_fields[5].to_string()),
-} */
+
 
 if record_fields.len() == 5 {
   Record{
@@ -88,4 +98,20 @@ else {
 }
 }
 
-} 
+}
+
+//Checks for sum of c and d if > 100
+fn test_one(records:Vec<Record>){
+
+    for rows in &records{
+        if let (Some(e), Some(d)) = (&rows.D, &rows.E){
+            if e + d  > 100{
+                
+                if let (Some(b) , Some(c)) = (&rows.B, &rows.C){
+                    println!("{}{}", b,c);
+                }
+            }
+
+        }
+    }
+}
