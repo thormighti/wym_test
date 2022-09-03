@@ -13,12 +13,12 @@ use serde::Serialize;
 // #[serde(rename_all = "camelCase")]
  struct Record {
     //used options incase field is empty, String might be pretty expensive
-    A: Option<String>,
-    B: Option<String>,
-    C: Option<String>,
-    D: Option<i32>,
-    E: Option<i32>,
-    F: Option<String>
+    column_a: Option<String>,
+    column_b: Option<String>,
+    column_c: Option<String>,
+    column_d: Option<i32>,
+    column_e: Option<i32>,
+    column_f: Option<String>
 }
 
 enum RecordResultFormat{
@@ -34,6 +34,61 @@ impl RecordResultFormat {
             
         }
     }
+    
+}
+
+struct CsvReader {
+    records: Vec<Record> 
+}
+
+impl CsvReader {
+    fn new() -> Self{
+        Self { records: vec![] }
+    }
+
+    fn push(&mut self, record:Record) {
+        self.records.push(record)
+    } 
+
+    fn test_one(&self, formet:&str){
+    for (index,rows) in self.records.iter().enumerate(){
+        if let (Some(e), Some(d)) = (&rows.column_d, &rows.column_e){
+            let sum_cd = e +d;
+            if sum_cd  > 100{
+               
+                
+                if let (Some(b) , Some(c)) = (&rows.column_b, &rows.column_c){
+
+                     match RecordResultFormat::new(formet){
+                    RecordResultFormat::JSON => {
+                         let json_obj_inner_struct = RecordJsonInner{
+                        line_number: index as u32 +1,
+                        types: "Ok".to_string(),
+                        concat_ab: format!("{} {}", c, d),
+                        sum_cd
+                    };
+                    let convert_to_json = serde_json::to_value(json_obj_inner_struct);
+
+                    println!("{:?}", convert_to_json);
+                    },
+                    RecordResultFormat::PlainText =>  println!("{}  {}  {}",index+1, b,c)
+                }
+            }
+
+        }
+        let json_error_objs_struct = Record_Json_Erro{
+            line_number: index as u32 +1,
+            types: "error".to_string(),
+            error_messages: "This row cant be processed correctly.".to_string(),
+        };
+
+        let convert_to_error_json = serde_json::to_value(json_error_objs_struct);
+        println!("Error_Json : {:?}", convert_to_error_json);
+
+    }
+}
+}
+
     
 }
 
@@ -65,9 +120,9 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1{
-    println!("{:?}", args[1]);
+    // println!("{:?}", args[1]);
      if let Ok(err) = run() {
-        test_one(err);
+        test_one(err,&args[1]);
     }
     if let  Err(err) = run(){
              println!("error running example: {}", err);
@@ -105,22 +160,22 @@ fn parse_column(input: String) -> Record {
 //Realized some rows had 6 fields and some had 5, had to address them here
 if record_fields.len() == 5 {
   Record{
-    A: Some(record_fields[0].to_string()),
-    B: Some(record_fields[1].to_string()),
-    C: Some(record_fields[2].to_string()),
-    D: get_value(record_fields[3]),
-    E: get_value(record_fields[4]),
-    F: None,
+    column_a: Some(record_fields[0].to_string()),
+    column_b: Some(record_fields[1].to_string()),
+    column_c: Some(record_fields[2].to_string()),
+    column_d: get_value(record_fields[3]),
+    column_e: get_value(record_fields[4]),
+    column_f: None,
 }
 }
 else {
   Record{
-    A: Some(record_fields[0].to_string()),
-    B: Some(record_fields[1].to_string()),
-    C: Some(record_fields[2].to_string()),
-    D: get_value(record_fields[3]),
-    E: get_value(record_fields[4]),
-    F: Some(record_fields[5].to_string()),
+    column_a: Some(record_fields[0].to_string()),
+    column_b: Some(record_fields[1].to_string()),
+    column_c: Some(record_fields[2].to_string()),
+    column_d: get_value(record_fields[3]),
+    column_e: get_value(record_fields[4]),
+    column_f: Some(record_fields[5].to_string()),
 }
 }
 
@@ -144,42 +199,4 @@ struct RecordJsonInner{
 // type RecordJson = HashMap<String,RecordJsonInner>;
 
 //Checks for sum of c and d if > 100 in test one
-fn test_one(records:Vec<Record>, formet:&str){
-    for (index,rows) in records.into_iter().enumerate(){
-        if let (Some(e), Some(d)) = (&rows.D, &rows.E){
-            let sum_cd = e +d;
-            if sum_cd  > 100{
-               
-                
-                if let (Some(b) , Some(c)) = (&rows.B, &rows.C){
-
-                     match RecordResultFormat::new(formet){
-                    RecordResultFormat::JSON => {
-                         let json_obj_inner_struct = RecordJsonInner{
-                        line_number: index as u32 +1,
-                        types: "Ok".to_string(),
-                        concat_ab: format!("{} {}", c, d),
-                        sum_cd
-                    };
-                    let convert_to_json = serde_json::to_value(json_obj_inner_struct);
-
-                    println!("{:?}", convert_to_json);
-                    },
-                    RecordResultFormat::PlainText =>  println!("{}  {}  {}",index+1, b,c)
-                }
-            }
-
-        }
-        let json_error_objs_struct = Record_Json_Erro{
-            line_number: index as u32 +1,
-            types: "error".to_string(),
-            error_messages: "This row cant be processed correctly.".to_string(),
-        };
-
-        let convert_to_error_json = serde_json::to_value(json_error_objs_struct);
-        println!("Error_Json : {:?}", convert_to_error_json);
-
-    }
-}
-}
     
