@@ -73,8 +73,16 @@ fn parse_column(input: String) -> Record {
      };
 
     // parsing the c and d column to integers
-    let d :i32= record_fields[3].trim().parse().unwrap_or(0);
-    let e :i32= record_fields[4].trim().parse().unwrap_or(0);
+
+    let get_value = |val:&str| -> Option<i32>{
+        let theval = val.trim().parse::<i32>();
+        if let Ok(val) = theval{
+            Some(val)
+        }
+        else {
+            None
+        }
+    }; 
 
 
 
@@ -84,8 +92,8 @@ if record_fields.len() == 5 {
     A: Some(record_fields[0].to_string()),
     B: Some(record_fields[1].to_string()),
     C: Some(record_fields[2].to_string()),
-    D: Some(d),
-    E: Some(e),
+    D: get_value(record_fields[3]),
+    E: get_value(record_fields[4]),
     F: None,
 
 }
@@ -95,8 +103,8 @@ else {
     A: Some(record_fields[0].to_string()),
     B: Some(record_fields[1].to_string()),
     C: Some(record_fields[2].to_string()),
-    D: Some(d),
-    E: Some(e),
+    D: get_value(record_fields[3]),
+    E: get_value(record_fields[4]),
     F: Some(record_fields[5].to_string()),
 
 }
@@ -124,7 +132,7 @@ struct RecordJsonInner{
 
 
 
-type RecordJson = HashMap<String,RecordJsonInner>;
+// type RecordJson = HashMap<String,RecordJsonInner>;
 
 //Checks for sum of c and d if > 100 in test one
 fn test_one(records:Vec<Record>){
@@ -149,6 +157,15 @@ fn test_one(records:Vec<Record>){
             }
 
         }
+        let json_error_objs_struct = Record_Json_Erro{
+            line_number: index as u32 +1,
+            types: "error".to_string(),
+            error_messages: "This row cant be processed correctly.".to_string(),
+        };
+
+        let convert_to_error_json = serde_json::to_value(json_error_objs_struct);
+        println!("Error_Json : {:?}", convert_to_error_json);
+
     }
 }
 /* 
