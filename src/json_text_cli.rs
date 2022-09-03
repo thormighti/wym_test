@@ -1,6 +1,7 @@
-
 use std::error::Error;
 use std::io;
+use simple_xml_builder::XMLElement;
+use std::fs::File;
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -35,20 +36,22 @@ pub struct Record {
 pub enum RecordResultFormat {
     PlainText,
     JSON,
+    XML
 }
 
 impl RecordResultFormat {
     fn new(result: &str) -> Self {
         match result {
             "text" => Self::PlainText,
+            "xml" => Self::XML,
             _ => Self::JSON, // json is deafult
         }
     }
 }
 
 pub struct CsvReader {
-   pub records: Vec<Record>,
-   pub format: RecordResultFormat,
+    pub records: Vec<Record>,
+    pub format: RecordResultFormat,
 }
 
 impl CsvReader {
@@ -74,7 +77,9 @@ impl CsvReader {
         Ok(Self { records, format })
     }
 
-   pub fn test_one(&self) {
+    pub fn test_one(&self) {
+        //create file to save the xml file 
+        let mut csv_file = File::create("csv_file.xml").unwrap();
         for (index, rows) in self.records.iter().enumerate() {
             if let (Some(e), Some(d)) = (&rows.column_d, &rows.column_e) {
                 let sum_cd = e + d;
@@ -95,34 +100,80 @@ impl CsvReader {
                             RecordResultFormat::PlainText => {
                                 println!("{}  {}  {}", index + 1, b, c)
                             }
+                            RecordResultFormat::XML => {
+                                 let xml_objs_struct = RecordJsonInner {
+                                line_number: index as u32 + 1,
+                                types: "Ok".to_string(),
+                                    concat_ab: format!("{} {}", c, d),
+                                    sum_cd,
+
+
+                                
+                            };
+                            let mut big_csv = XMLElement::new("BigCSV");
+                            big_csv.add_attribute("id", "Parent Biggie");
+                            let mut line_number = XMLElement::new("LineNumber");
+                            line_number.add_attribute("line_number", xml_objs_struct.line_number);
+                            big_csv.add_child(line_number);
+                            let mut types = XMLElement::new("Types");
+                            types.add_attribute("error_type", xml_objs_struct.types);
+                            big_csv.add_child(types);
+                            let mut concatab = XMLElement::new("ErrorMessage");
+                            concatab.add_attribute("message", xml_objs_struct.concat_ab);
+                            big_csv.add_child(concatab);
+                            let mut sumcd = XMLElement::new("sum");
+                            sumcd.add_attribute("summation", xml_objs_struct.sum_cd);
+                            big_csv.add_child(sumcd);
+
+                            big_csv.write(&csv_file).unwrap();
+
+                            println!("{:?}",big_csv);
+                            }
                         }
                     }
                 }
-               
+
                 if let (Some(b), Some(c)) = (&rows.column_b, &rows.column_c) {
+                    //for unproceesed rows
+                    match self.format {
+                        RecordResultFormat::JSON => {
+                            let json_error_objs_struct = RecordJsonErro {
+                                line_number: index as u32 + 1,
+                                types: "error".to_string(),
+                                error_messages: "This row cant be processed correctly.".to_string(),
+                            };
 
-                //for unproceesed rows
-                match self.format {
-                    RecordResultFormat::JSON => {
-                          let json_error_objs_struct = RecordJsonErro {
-                    line_number: index as u32 + 1,
-                    types: "error".to_string(),
-                    error_messages: "This row cant be processed correctly.".to_string(),
-                };
+                            let convert_to_error_json =
+                                serde_json::to_value(json_error_objs_struct);
+                            println!("Error_Json : {:?}", convert_to_error_json);
+                        }
 
-                let convert_to_error_json = serde_json::to_value(json_error_objs_struct);
-                println!("Error_Json : {:?}", convert_to_error_json);
+                        RecordResultFormat::PlainText => {
+                            println!("{}  {}  {}", index + 1, b, c)
+                        }
+                        RecordResultFormat::XML => {
+                            let xml_error_objs_struct = RecordJsonErro {
+                                line_number: index as u32 + 1,
+                                types: "error".to_string(),
+                                error_messages: "This row cant be processed correctly.".to_string(),
+                            };
+                            let mut big_csv = XMLElement::new("BigCSV");
+                            big_csv.add_attribute("id", "Parent Biggie");
+                            let mut line_number = XMLElement::new("LineNumber");
+                            line_number.add_attribute("line_number", xml_error_objs_struct.line_number);
+                            big_csv.add_child(line_number);
+                            let mut types = XMLElement::new("Types");
+                            types.add_attribute("error_type", xml_error_objs_struct.types);
+                            big_csv.add_child(types);
+                            let mut error_messages = XMLElement::new("ErrorMessage");
+                            error_messages.add_attribute("message", xml_error_objs_struct.error_messages);
+                            big_csv.add_child(error_messages);
+
+                            println!("{:?}",big_csv);
+
+                        }
                     }
-
-                    RecordResultFormat::PlainText => {
-                        println!("{}  {}  {}", index + 1, b, c)
-
-                    }
-                    
                 }
-
-            } 
-
             }
         }
     }
