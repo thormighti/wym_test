@@ -171,6 +171,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simple-xml-builder",
+ "xml-builder",
 ]
 
 [[package]]
@@ -178,3 +179,9 @@ name = "unicode-ident"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4f5b37a154999a8f3f98cc23a628d850e154479cd94decf3414696e12e31aaf"
+
+[[package]]
+name = "xml-builder"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6aff3eebeb8c12d38dd6dcbd07082929a55764d13ad695632c35132ff7cf61ec"

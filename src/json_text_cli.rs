@@ -1,7 +1,7 @@
 use std::error::Error;
-use std::io;
-use simple_xml_builder::XMLElement;
 use std::fs::File;
+use std::io;
+use xml_builder::{XMLBuilder, XMLElement, XMLVersion};
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -36,7 +36,7 @@ pub struct Record {
 pub enum RecordResultFormat {
     PlainText,
     JSON,
-    XML
+    XML,
 }
 
 impl RecordResultFormat {
@@ -78,8 +78,8 @@ impl CsvReader {
     }
 
     pub fn test_one(&self) {
-        //create file to save the xml file 
-        let mut csv_file = File::create("csv_file.xml").unwrap();
+        let mut csv_fil = File::create("peter.xml").unwrap();
+
         for (index, rows) in self.records.iter().enumerate() {
             if let (Some(e), Some(d)) = (&rows.column_d, &rows.column_e) {
                 let sum_cd = e + d;
@@ -98,36 +98,53 @@ impl CsvReader {
                                 println!("{:?}", convert_to_json);
                             }
                             RecordResultFormat::PlainText => {
-                                println!("{}  {}  {}", index + 1, b, c)
+                                println!("{}  {}  {}", index + 1, b, c);
                             }
                             RecordResultFormat::XML => {
-                                 let xml_objs_struct = RecordJsonInner {
-                                line_number: index as u32 + 1,
-                                types: "Ok".to_string(),
+                                let xml_objs_struct = RecordJsonInner {
+                                    line_number: index as u32 + 1,
+                                    types: "Ok".to_string(),
                                     concat_ab: format!("{} {}", c, d),
                                     sum_cd,
+                                };
+                                //xml builder call
+                                let mut xml = XMLBuilder::new()
+                                    .version(XMLVersion::XML1_0)
+                                    .encoding("UTF-8".into())
+                                    .build();
+                                let mut big_csv = XMLElement::new("BigCSV");
+                                big_csv.add_attribute("id", "Parent Biggie");
+                                let mut line_number = XMLElement::new("LineNumber");
+                                line_number.add_attribute(
+                                    "line_number",
+                                    &xml_objs_struct.line_number.to_string(),
+                                );
+                                big_csv.add_child(line_number).unwrap();
+                                let mut types = XMLElement::new("Types");
+                                types.add_attribute(
+                                    "error_type",
+                                    &xml_objs_struct.types.to_string(),
+                                );
+                                big_csv.add_child(types).unwrap();
+                                let mut concatab = XMLElement::new("ErrorMessage");
+                                concatab.add_attribute(
+                                    "message",
+                                    &xml_objs_struct.concat_ab.to_string(),
+                                );
+                                big_csv.add_child(concatab).unwrap();
+                                let mut sumcd = XMLElement::new("sum");
+                                sumcd.add_attribute(
+                                    "summation",
+                                    &xml_objs_struct.sum_cd.to_string(),
+                                );
+                                big_csv.add_child(sumcd).unwrap();
 
+                                xml.set_root_element(big_csv);
 
-                                
-                            };
-                            let mut big_csv = XMLElement::new("BigCSV");
-                            big_csv.add_attribute("id", "Parent Biggie");
-                            let mut line_number = XMLElement::new("LineNumber");
-                            line_number.add_attribute("line_number", xml_objs_struct.line_number);
-                            big_csv.add_child(line_number);
-                            let mut types = XMLElement::new("Types");
-                            types.add_attribute("error_type", xml_objs_struct.types);
-                            big_csv.add_child(types);
-                            let mut concatab = XMLElement::new("ErrorMessage");
-                            concatab.add_attribute("message", xml_objs_struct.concat_ab);
-                            big_csv.add_child(concatab);
-                            let mut sumcd = XMLElement::new("sum");
-                            sumcd.add_attribute("summation", xml_objs_struct.sum_cd);
-                            big_csv.add_child(sumcd);
+                                //    let mut writer :Vec<u8> = Vec::new();
+                                xml.generate(&mut csv_fil).unwrap();
 
-                            big_csv.write(&csv_file).unwrap();
-
-                            println!("{:?}",big_csv);
+                                // println!("{:?}",writer);
                             }
                         }
                     }
@@ -149,7 +166,7 @@ impl CsvReader {
                         }
 
                         RecordResultFormat::PlainText => {
-                            println!("{}  {}  {}", index + 1, b, c)
+                            println!("{}  {}  {}", index + 1, b, c);
                         }
                         RecordResultFormat::XML => {
                             let xml_error_objs_struct = RecordJsonErro {
@@ -157,20 +174,33 @@ impl CsvReader {
                                 types: "error".to_string(),
                                 error_messages: "This row cant be processed correctly.".to_string(),
                             };
+                            let mut xml = XMLBuilder::new()
+                                .version(XMLVersion::XML1_0)
+                                .encoding("UTF-8".into())
+                                .build();
+
                             let mut big_csv = XMLElement::new("BigCSV");
                             big_csv.add_attribute("id", "Parent Biggie");
                             let mut line_number = XMLElement::new("LineNumber");
-                            line_number.add_attribute("line_number", xml_error_objs_struct.line_number);
-                            big_csv.add_child(line_number);
+                            line_number.add_attribute(
+                                "line_number",
+                                &xml_error_objs_struct.line_number.to_string(),
+                            );
+                            big_csv.add_child(line_number).unwrap();
                             let mut types = XMLElement::new("Types");
-                            types.add_attribute("error_type", xml_error_objs_struct.types);
-                            big_csv.add_child(types);
+                            types.add_attribute("error_type", &xml_error_objs_struct.types);
+                            big_csv.add_child(types).unwrap();
                             let mut error_messages = XMLElement::new("ErrorMessage");
-                            error_messages.add_attribute("message", xml_error_objs_struct.error_messages);
-                            big_csv.add_child(error_messages);
+                            error_messages
+                                .add_attribute("message", &xml_error_objs_struct.error_messages);
+                            big_csv.add_child(error_messages).unwrap();
 
-                            println!("{:?}",big_csv);
+                            xml.set_root_element(big_csv);
 
+                            // let mut writer :Vec<u8> = Vec::new();
+                            xml.generate(&mut csv_fil).unwrap();
+
+                            // println!("{:?}",writer);
                         }
                     }
                 }
@@ -219,3 +249,7 @@ impl CsvReader {
         }
     }
 }
+
+/* Phew!, pretty handy work habdling xml files. used xml builder crates to output xml way to the user
+but i wrote it to a file dont want to mess my screen
+good idea lets write all my output to file haha. nahhhhhh lets leave it like this for now.lol */
