@@ -90,7 +90,7 @@ impl CsvReader {
                                 let json_obj_inner_struct = RecordJsonInner {
                                     line_number: index as u32 + 1,
                                     types: "Ok".to_string(),
-                                    concat_ab: format!("{} {}", c, d),
+                                    concat_ab: format!("{} {}", b, c),
                                     sum_cd,
                                 };
                                 let convert_to_json = serde_json::to_value(json_obj_inner_struct);
@@ -104,7 +104,7 @@ impl CsvReader {
                                 let xml_objs_struct = RecordJsonInner {
                                     line_number: index as u32 + 1,
                                     types: "Ok".to_string(),
-                                    concat_ab: format!("{} {}", c, d),
+                                    concat_ab: format!("{} {}", b, c),
                                     sum_cd,
                                 };
                                 //xml builder call
