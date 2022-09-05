@@ -6,8 +6,6 @@ use xml_builder::{XMLBuilder, XMLElement, XMLVersion};
 use serde::Deserialize;
 use serde::Serialize;
 
-
-
 #[derive(Debug, Deserialize, Serialize)]
 struct RecordJsonInner {
     line_number: u32,
@@ -22,7 +20,6 @@ struct RecordJsonErro {
     types: String,
     error_messages: String,
 }
-
 
 // #[serde(rename_all = "camelCase")]
 #[derive(Debug, Deserialize, Serialize)]
@@ -82,6 +79,12 @@ impl CsvReader {
     }
     pub fn test_one(&self) {
         let mut csv_fil = File::create("peter.xml").unwrap();
+        let mut xml = XMLBuilder::new()
+            .version(XMLVersion::XML1_0)
+            .encoding("UTF-8".into())
+            .build();
+        let mut big_csv = XMLElement::new("BigCSV");
+        big_csv.add_attribute("id", "Parent Biggie");
 
         for (index, rows) in self.records.iter().enumerate() {
             if let (Some(e), Some(d)) = (&rows.column_d, &rows.column_e) {
@@ -96,10 +99,9 @@ impl CsvReader {
                                     concat_ab: format!("{} {}", b, c),
                                     sum_cd,
                                 }];
-                                let  convert_to_json: String =
+                                let convert_to_json: String =
                                     serde_json::to_string(&json_obj_inner_struct).unwrap();
                                 // let c:Vec<&str> = convert_to_json.split(&['\n',  '\"']).collect();
-                                
 
                                 println!("{:?}", convert_to_json);
                             }
@@ -114,12 +116,8 @@ impl CsvReader {
                                     sum_cd,
                                 };
                                 //xml builder call
-                                let mut xml = XMLBuilder::new()
-                                    .version(XMLVersion::XML1_0)
-                                    .encoding("UTF-8".into())
-                                    .build();
-                                let mut big_csv = XMLElement::new("BigCSV");
-                                big_csv.add_attribute("id", "Parent Biggie");
+
+                                // let mut big_csv = XMLElement::new("BigCSV");
                                 let mut line_number = XMLElement::new("LineNumber");
                                 line_number.add_attribute(
                                     "line_number",
@@ -145,10 +143,8 @@ impl CsvReader {
                                 );
                                 big_csv.add_child(sumcd).unwrap();
 
-                                xml.set_root_element(big_csv);
-
                                 //    let mut writer :Vec<u8> = Vec::new();
-                                xml.generate(&mut csv_fil).unwrap();
+                                // xml.generate(&mut csv_fil).unwrap();
 
                                 // println!("{:?}",writer);
                             }
@@ -183,13 +179,7 @@ impl CsvReader {
                                 types: "error".to_string(),
                                 error_messages: "This row cant be processed correctly.".to_string(),
                             };
-                            let mut xml = XMLBuilder::new()
-                                .version(XMLVersion::XML1_0)
-                                .encoding("UTF-8".into())
-                                .build();
 
-                            let mut big_csv = XMLElement::new("BigCSV");
-                            big_csv.add_attribute("id", "Parent Biggie");
                             let mut line_number = XMLElement::new("LineNumber");
                             line_number.add_attribute(
                                 "line_number",
@@ -204,10 +194,9 @@ impl CsvReader {
                                 .add_attribute("message", &xml_error_objs_struct.error_messages);
                             big_csv.add_child(error_messages).unwrap();
 
-                            xml.set_root_element(big_csv);
+                            // xml.set_root_element(big_csv);
 
                             // let mut writer :Vec<u8> = Vec::new();
-                            xml.generate(&mut csv_fil).unwrap();
 
                             // println!("{:?}",writer);
                         }
@@ -215,6 +204,8 @@ impl CsvReader {
                 }
             }
         }
+        xml.set_root_element(big_csv);
+        xml.generate(&mut csv_fil).unwrap();
     }
 
     fn parse_column(input: String) -> Record {
