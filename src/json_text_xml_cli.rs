@@ -6,6 +6,8 @@ use xml_builder::{XMLBuilder, XMLElement, XMLVersion};
 use serde::Deserialize;
 use serde::Serialize;
 
+
+
 #[derive(Debug, Deserialize, Serialize)]
 struct RecordJsonInner {
     line_number: u32,
@@ -21,8 +23,9 @@ struct RecordJsonErro {
     error_messages: String,
 }
 
-#[derive(Debug, Deserialize)]
+
 // #[serde(rename_all = "camelCase")]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Record {
     //used options incase field is empty, String might be pretty expensive
     _column_a: Option<String>,
@@ -32,7 +35,7 @@ pub struct Record {
     column_e: Option<i32>,
     _column_f: Option<String>,
 }
-
+#[derive(Debug, Deserialize, Serialize)]
 pub enum RecordResultFormat {
     PlainText,
     JSON,
@@ -49,6 +52,7 @@ impl RecordResultFormat {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CsvReader {
     pub records: Vec<Record>,
     pub format: RecordResultFormat,
@@ -76,7 +80,6 @@ impl CsvReader {
         let format = RecordResultFormat::new(formet);
         Ok(Self { records, format })
     }
-
     pub fn test_one(&self) {
         let mut csv_fil = File::create("peter.xml").unwrap();
 
@@ -87,13 +90,16 @@ impl CsvReader {
                     if let (Some(b), Some(c)) = (&rows.column_b, &rows.column_c) {
                         match self.format {
                             RecordResultFormat::JSON => {
-                                let json_obj_inner_struct = RecordJsonInner {
+                                let json_obj_inner_struct = vec![RecordJsonInner {
                                     line_number: index as u32 + 1,
                                     types: "Ok".to_string(),
                                     concat_ab: format!("{} {}", b, c),
                                     sum_cd,
-                                };
-                                let convert_to_json = serde_json::to_value(json_obj_inner_struct);
+                                }];
+                                let  convert_to_json: String =
+                                    serde_json::to_string(&json_obj_inner_struct).unwrap();
+                                // let c:Vec<&str> = convert_to_json.split(&['\n',  '\"']).collect();
+                                
 
                                 println!("{:?}", convert_to_json);
                             }
@@ -154,15 +160,18 @@ impl CsvReader {
                     //for unproceesed rows
                     match self.format {
                         RecordResultFormat::JSON => {
-                            let json_error_objs_struct = RecordJsonErro {
+                            let json_error_objs_struct = vec![RecordJsonErro {
                                 line_number: index as u32 + 1,
                                 types: "error".to_string(),
                                 error_messages: "This row cant be processed correctly.".to_string(),
-                            };
+                            }];
 
                             let convert_to_error_json =
-                                serde_json::to_value(json_error_objs_struct);
-                            println!("Error_Json : {:?}", convert_to_error_json);
+                                serde_json::to_string(&json_error_objs_struct).unwrap(); // need to handle this too
+
+                            //   let jvec = vec![convert_to_error_json];
+
+                            println!("{:?}", convert_to_error_json);
                         }
 
                         RecordResultFormat::PlainText => {
