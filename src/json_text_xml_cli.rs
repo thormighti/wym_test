@@ -99,11 +99,11 @@ impl CsvReader {
                                     concat_ab: format!("{} {}", b, c),
                                     sum_cd,
                                 }];
-                                let convert_to_json: String =
-                                    serde_json::to_string(&json_obj_inner_struct).unwrap();
-                                // let c:Vec<&str> = convert_to_json.split(&['\n',  '\"']).collect();
+                                let convert_to_json =
+                                    // serde_json::to_string(&json_obj_inner_struct).unwrap();
+                                    serde_json::to_value(json_obj_inner_struct).unwrap();
 
-                                println!("{:?}", convert_to_json);
+                                println!("{}", convert_to_json);
                             }
                             RecordResultFormat::PlainText => {
                                 println!("{}  {}  {}", index + 1, b, c);
@@ -163,11 +163,12 @@ impl CsvReader {
                             }];
 
                             let convert_to_error_json =
-                                serde_json::to_string(&json_error_objs_struct).unwrap(); // need to handle this too
+                                serde_json::to_value(json_error_objs_struct);
+                            // serde_json::to_string(&json_error_objs_struct).unwrap(); // need to handle this too
 
                             //   let jvec = vec![convert_to_error_json];
 
-                            println!("{:?}", convert_to_error_json);
+                            println!("{}", convert_to_error_json.unwrap());
                         }
 
                         RecordResultFormat::PlainText => {
