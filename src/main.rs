@@ -9,9 +9,13 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1 {
+
         let csv_saver = CsvReader::new(&args[1]);
+        
+        //borrow from the other cmd program
 
         if let Ok(val) = csv_saver {
+
             val.test_one();
         } else {
             println!("error running example");

@@ -60,7 +60,7 @@ impl CsvReader {
         let mut rdr = csv::Reader::from_reader(io::stdin());
 
         //store vector of the records
-        let mut records = vec![];
+        let mut records = vec![]; //handle this could use iteraterators somehow
 
         for result in rdr.deserialize() {
             // Notice that we need to provide a type hint for automatic
@@ -93,6 +93,7 @@ impl CsvReader {
                     if let (Some(b), Some(c)) = (&rows.column_b, &rows.column_c) {
                         match self.format {
                             RecordResultFormat::JSON => {
+
                                 let json_obj_inner_struct = vec![RecordJsonInner {
                                     line_number: index as u32 + 1,
                                     types: "Ok".to_string(),
@@ -250,6 +251,43 @@ impl CsvReader {
         }
     }
 }
+#[cfg(test)]
+mod test{
+    use super::*;
+
+    #[test]
+    fn test_json(){
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Phew!, pretty handy work habdling xml files. used xml builder crates to output xml way to the user
 but i wrote it to a file dont want to mess my screen
