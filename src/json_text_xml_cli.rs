@@ -25,12 +25,13 @@ struct RecordJsonErro {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Record {
     //used options incase field is empty, String might be pretty expensive
-    _column_a: Option<String>,
+    column: Option<String>,
+    column_a: Option<String>,
     column_b: Option<String>,
-    column_c: Option<String>,
+    column_c: Option<i32>,
     column_d: Option<i32>,
-    column_e: Option<i32>,
-    _column_f: Option<String>,
+    
+    other_column: Option<String>,
 }
 #[derive(Debug, Deserialize, Serialize)]
 pub enum RecordResultFormat {
@@ -60,19 +61,20 @@ impl CsvReader {
         let mut rdr = csv::Reader::from_reader(io::stdin());
 
         //store vector of the records
-        let mut records = vec![]; //handle this could use iteraterators somehow
+        // let mut records = vec![]; //handle this could use iteraterators somehow
 
         for result in rdr.deserialize() {
             // Notice that we need to provide a type hint for automatic
             // deserialization.
-            let record: Option<String> = result?;
+            let record: Record = result?;
+            if record.
             // println!("{:?}", record);
 
-            if let Some(data) = record {
-                let column = Self::parse_column(data);
+            // if let Some(data) = record {
+            //     let column = Self::parse_column(data);
 
-                records.push(column);
-            }
+            //     // records.push(column);
+            // }
         }
         let format = RecordResultFormat::new(formet);
         Ok(Self { records, format })
