@@ -1,3 +1,4 @@
+use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::io;
@@ -27,17 +28,17 @@ pub struct Record {
     //used options incase field is empty, String might be pretty expensive
     column: Option<String>,
     #[serde(rename = "columnA")]
-     column_a: Option<String>,
-      #[serde(rename = "columnB")]
+    column_a: Option<String>,
+    #[serde(rename = "columnB")]
     column_b: Option<String>,
-     #[serde(rename = "columnC")]
+    #[serde(rename = "columnC")]
     column_c: Option<i32>,
-     #[serde(deserialize_with = "csv::invalid_option")]
-     #[serde(rename = "columnD")]
+    #[serde(deserialize_with = "csv::invalid_option")]
+    #[serde(rename = "columnD")]
     column_d: Option<i32>,
-     #[serde(rename = "otherColumn")]
-     #[serde(deserialize_with = "csv::invalid_option")]
-     other_column: Option<String>,
+    #[serde(rename = "otherColumn")]
+    #[serde(deserialize_with = "csv::invalid_option")]
+    other_column: Option<String>,
 }
 #[derive(Debug, Deserialize, Serialize)]
 pub enum RecordResultFormat {
@@ -58,58 +59,24 @@ impl RecordResultFormat {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CsvReader {
-    //  pub records: Vec<Record>,
     pub format: RecordResultFormat,
 }
 
 impl CsvReader {
     pub fn new() -> Result<(), Box<dyn Error>> {
-        let mut rdr = csv::ReaderBuilder::new().delimiter(b';').flexible(true).from_reader(io::stdin());
-
-        //store vector of the records
-        // let mut records = vec![]; //handle this could use iteraterators somehow
+        //builds csv files. awesome stuff
+        let mut rdr = csv::ReaderBuilder::new()
+            .delimiter(b';')
+            .flexible(true)
+            .from_reader(io::stdin());
 
         let mut count = 0;
+        let args: Vec<String> = env::args().collect();
 
-        for result in rdr.deserialize() {
-            // Notice that we need to provide a type hint for automatic
-            // deserialization. 
+        let format = RecordResultFormat::new(&args[1]);
 
-            let record: Record = result?;
-
-            if let (Some(c), Some(d)) = (&record.column_c, record.column_d)  {
-                let sum_cd = c + d;
-                if sum_cd > 100{
-                    if let (Some(a), Some(b)) = (&record.column_a, &record.column_b) {
-                        
-                            
-
-                             
-                            
-                        
-                                println!("{}  {}  {}", count + 1, a, b);
-                            
-
-                            
-                        
-                    }
-
-                }
-                
-            }
-
-            // println!("{:?}", record);
-
-       count+=1;
-            
-          
-        }
-       // let format = RecordResultFormat::new(formet);
-        
-        Ok(())
-    }
-    // pub fn test_one(&self) {
-   /*      let mut csv_fil = File::create("peter.xml").unwrap();
+        //to create the xml file
+        let mut csv_fil = File::create("peter.xml").unwrap();
         let mut xml = XMLBuilder::new()
             .version(XMLVersion::XML1_0)
             .encoding("UTF-8".into())
@@ -117,18 +84,25 @@ impl CsvReader {
         let mut big_csv = XMLElement::new("BigCSV");
         big_csv.add_attribute("id", "Parent Biggie");
 
-        for (index, rows) in self.records.iter().enumerate() {
-            if let (Some(e), Some(d)) = (&rows.column_d, &rows.column_c) {
-                let sum_cd = e + d;
-                if sum_cd > 100 {
-                    if let (Some(b), Some(c)) = (&rows.column_b, &rows.column_c) {
-                        match self.format {
-                            RecordResultFormat::JSON => {
+        //to here
 
+        for result in rdr.deserialize() {
+            // Notice that we need to provide a type hint for automatic
+            // deserialization.
+
+            let record: Record = result?;
+            //lets get the arg[1]
+
+            if let (Some(c), Some(d)) = (&record.column_c, record.column_d) {
+                let sum_cd = c + d;
+                if sum_cd > 100 {
+                    if let (Some(a), Some(b)) = (&record.column_a, &record.column_b) {
+                        match format {
+                            RecordResultFormat::JSON => {
                                 let json_obj_inner_struct = vec![RecordJsonInner {
-                                    line_number: index as u32 + 1,
+                                    line_number: count as u32 + 1,
                                     types: "Ok".to_string(),
-                                    concat_ab: format!("{} {}", b, c),
+                                    concat_ab: format!("{} {}", a, b),
                                     sum_cd,
                                 }];
                                 let convert_to_json =
@@ -138,11 +112,11 @@ impl CsvReader {
                                 println!("{}", convert_to_json);
                             }
                             RecordResultFormat::PlainText => {
-                                println!("{}  {}  {}", index + 1, b, c);
+                                println!("{}  {}  {}", count + 1, b, c);
                             }
                             RecordResultFormat::XML => {
                                 let xml_objs_struct = RecordJsonInner {
-                                    line_number: index as u32 + 1,
+                                    line_number: count as u32 + 1,
                                     types: "Ok".to_string(),
                                     concat_ab: format!("{} {}", b, c),
                                     sum_cd,
@@ -184,12 +158,11 @@ impl CsvReader {
                     }
                 }
 
-                if let (Some(b), Some(c)) = (&rows.column_b, &rows.column_c) {
-                    //for unproceesed rows
-                    match self.format {
+                if let (Some(a), Some(b)) = (&record.column_a, &record.column_b) {
+                    match format {
                         RecordResultFormat::JSON => {
                             let json_error_objs_struct = vec![RecordJsonErro {
-                                line_number: index as u32 + 1,
+                                line_number: count as u32 + 1,
                                 types: "error".to_string(),
                                 error_messages: "This row cant be processed correctly.".to_string(),
                             }];
@@ -204,11 +177,11 @@ impl CsvReader {
                         }
 
                         RecordResultFormat::PlainText => {
-                            println!("{}  {}  {}", index + 1, b, c);
+                            println!("{}  {}  {}", count + 1, a, b);
                         }
                         RecordResultFormat::XML => {
                             let xml_error_objs_struct = RecordJsonErro {
-                                line_number: index as u32 + 1,
+                                line_number: count as u32 + 1,
                                 types: "error".to_string(),
                                 error_messages: "This row cant be processed correctly.".to_string(),
                             };
@@ -236,90 +209,14 @@ impl CsvReader {
                     }
                 }
             }
+
+            // println!("{:?}", record);
+
+            count += 1;
         }
         xml.set_root_element(big_csv);
         xml.generate(&mut csv_fil).unwrap();
-    } */
 
-   /*  fn parse_column(input: String) -> Record {
-        let record_fields: Vec<_> = input.split(";").collect();
-
-        //rows should contain atleast 5 fields
-
-        if record_fields.len() < 5 {
-            println!("Unexpected number of columns");
-        };
-
-        // parsing the c and d column to integers
-
-        let get_value = |val: &str| -> Option<i32> {
-            let theval = val.trim().parse::<i32>();
-            if let Ok(val) = theval {
-                Some(val)
-            } else {
-                None
-            }
-        };
-        //Realized some rows had 6 fields and some had 5, had to address them here
-        if record_fields.len() == 5 {
-            Record {
-                _column_a: Some(record_fields[0].to_string()),
-                column_b: Some(record_fields[1].to_string()),
-                column_c: Some(record_fields[2].to_string()),
-                column_d: get_value(record_fields[3]),
-                column_e: get_value(record_fields[4]),
-                _column_f: None,
-            }
-        } else {
-            Record {
-                _column_a: Some(record_fields[0].to_string()),
-                column_b: Some(record_fields[1].to_string()),
-                column_c: Some(record_fields[2].to_string()),
-                column_d: get_value(record_fields[3]),
-                column_e: get_value(record_fields[4]),
-                _column_f: Some(record_fields[5].to_string()),
-            }
-        } */
-    }
-
-#[cfg(test)]
-mod test{
-    use super::*;
-
-    #[test]
-    fn test_json(){
-
+        Ok(())
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Phew!, pretty handy work habdling xml files. used xml builder crates to output xml way to the user
-but i wrote it to a file dont want to mess my screen
-good idea lets write all my output to file haha. nahhhhhh lets leave it like this for now.lol */
