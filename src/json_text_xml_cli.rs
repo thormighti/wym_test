@@ -70,8 +70,10 @@ impl CsvReader {
             .flexible(true)
             .from_reader(io::stdin());
 
-        let mut count = 0;
+        let mut count = 0; // track index
         let args: Vec<String> = env::args().collect();
+
+        //lets get the arg[1]
 
         let format = RecordResultFormat::new(&args[1]);
 
@@ -87,11 +89,7 @@ impl CsvReader {
         //to here
 
         for result in rdr.deserialize() {
-            // Notice that we need to provide a type hint for automatic
-            // deserialization.
-
             let record: Record = result?;
-            //lets get the arg[1]
 
             if let (Some(c), Some(d)) = (&record.column_c, record.column_d) {
                 let sum_cd = c + d;
@@ -158,6 +156,8 @@ impl CsvReader {
                     }
                 }
 
+                // for those with errors
+
                 if let (Some(a), Some(b)) = (&record.column_a, &record.column_b) {
                     match format {
                         RecordResultFormat::JSON => {
@@ -199,18 +199,10 @@ impl CsvReader {
                             error_messages
                                 .add_attribute("message", &xml_error_objs_struct.error_messages);
                             big_csv.add_child(error_messages).unwrap();
-
-                            // xml.set_root_element(big_csv);
-
-                            // let mut writer :Vec<u8> = Vec::new();
-
-                            // println!("{:?}",writer);
                         }
                     }
                 }
             }
-
-            // println!("{:?}", record);
 
             count += 1;
         }

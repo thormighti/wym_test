@@ -1,6 +1,5 @@
 mod json_text_xml_cli;
 use json_text_xml_cli::CsvReader;
-use std::env;
 use std::process;
 
 fn main() {
