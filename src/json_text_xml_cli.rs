@@ -56,11 +56,11 @@ pub struct CsvReader {
 }
 
 impl CsvReader {
-    pub fn new(formet: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn new(formet : &str) -> Result<Self, Box<dyn Error>> {
         let mut rdr = csv::Reader::from_reader(io::stdin());
 
         //store vector of the records
-        let mut records = vec![]; //handle this could use iteraterators somehow
+        let mut records = vec![]; //handle this could use itererators somehow
 
         for result in rdr.deserialize() {
             // Notice that we need to provide a type hint for automatic
@@ -257,6 +257,10 @@ mod test{
 
     #[test]
     fn test_json(){
+        let input = ";here is some value 9511;columnB;44;69;";
+        let output = r#"
+        [{"concat_ab":"here is some value 9511 columnB","line_number":9511,"sum_cd":113,"types":"Ok"}]"#;
+        // let record = CsvReader::test_one();
 
     }
 }
