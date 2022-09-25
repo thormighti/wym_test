@@ -58,7 +58,7 @@ impl RecordResultFormat {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CsvReader {
-     pub records: Vec<Record>,
+    //  pub records: Vec<Record>,
     pub format: RecordResultFormat,
 }
 
@@ -69,19 +69,47 @@ impl CsvReader {
         //store vector of the records
         // let mut records = vec![]; //handle this could use iteraterators somehow
 
+        let mut count = 0;
+
         for result in rdr.deserialize() {
             // Notice that we need to provide a type hint for automatic
-            // deserialization.
+            // deserialization. 
+
             let record: Record = result?;
-            println!("{:?}", record);
+
+            if let (Some(c), Some(d)) = (&record.column_c, record.column_d)  {
+                let sum_cd = c + d;
+                if sum_cd > 100{
+                    if let (Some(a), Some(b)) = (&record.column_a, &record.column_b) {
+                        
+                            
+
+                             
+                            
+                        
+                                println!("{}  {}  {}", count + 1, a, b);
+                            
+
+                            
+                        
+                    }
+
+                }
+                
+            }
+
+            // println!("{:?}", record);
+
+       count+=1;
+            
           
         }
        // let format = RecordResultFormat::new(formet);
         
         Ok(())
     }
-    pub fn test_one(&self) {
-        let mut csv_fil = File::create("peter.xml").unwrap();
+    // pub fn test_one(&self) {
+   /*      let mut csv_fil = File::create("peter.xml").unwrap();
         let mut xml = XMLBuilder::new()
             .version(XMLVersion::XML1_0)
             .encoding("UTF-8".into())
@@ -211,7 +239,7 @@ impl CsvReader {
         }
         xml.set_root_element(big_csv);
         xml.generate(&mut csv_fil).unwrap();
-    }
+    } */
 
    /*  fn parse_column(input: String) -> Record {
         let record_fields: Vec<_> = input.split(";").collect();
