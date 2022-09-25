@@ -26,12 +26,18 @@ struct RecordJsonErro {
 pub struct Record {
     //used options incase field is empty, String might be pretty expensive
     column: Option<String>,
-    column_a: Option<String>,
+    #[serde(rename = "columnA")]
+     column_a: Option<String>,
+      #[serde(rename = "columnB")]
     column_b: Option<String>,
+     #[serde(rename = "columnC")]
     column_c: Option<i32>,
+     #[serde(deserialize_with = "csv::invalid_option")]
+     #[serde(rename = "columnD")]
     column_d: Option<i32>,
-    
-    other_column: Option<String>,
+     #[serde(rename = "otherColumn")]
+     #[serde(deserialize_with = "csv::invalid_option")]
+     other_column: Option<String>,
 }
 #[derive(Debug, Deserialize, Serialize)]
 pub enum RecordResultFormat {
@@ -52,13 +58,13 @@ impl RecordResultFormat {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CsvReader {
-    pub records: Vec<Record>,
+     pub records: Vec<Record>,
     pub format: RecordResultFormat,
 }
 
 impl CsvReader {
-    pub fn new(formet: &str) -> Result<Self, Box<dyn Error>> {
-        let mut rdr = csv::Reader::from_reader(io::stdin());
+    pub fn new() -> Result<(), Box<dyn Error>> {
+        let mut rdr = csv::ReaderBuilder::new().delimiter(b';').flexible(true).from_reader(io::stdin());
 
         //store vector of the records
         // let mut records = vec![]; //handle this could use iteraterators somehow
@@ -67,17 +73,12 @@ impl CsvReader {
             // Notice that we need to provide a type hint for automatic
             // deserialization.
             let record: Record = result?;
-            if record.
-            // println!("{:?}", record);
-
-            // if let Some(data) = record {
-            //     let column = Self::parse_column(data);
-
-            //     // records.push(column);
-            // }
+            println!("{:?}", record);
+          
         }
-        let format = RecordResultFormat::new(formet);
-        Ok(Self { records, format })
+       // let format = RecordResultFormat::new(formet);
+        
+        Ok(())
     }
     pub fn test_one(&self) {
         let mut csv_fil = File::create("peter.xml").unwrap();
@@ -89,7 +90,7 @@ impl CsvReader {
         big_csv.add_attribute("id", "Parent Biggie");
 
         for (index, rows) in self.records.iter().enumerate() {
-            if let (Some(e), Some(d)) = (&rows.column_d, &rows.column_e) {
+            if let (Some(e), Some(d)) = (&rows.column_d, &rows.column_c) {
                 let sum_cd = e + d;
                 if sum_cd > 100 {
                     if let (Some(b), Some(c)) = (&rows.column_b, &rows.column_c) {
@@ -212,7 +213,7 @@ impl CsvReader {
         xml.generate(&mut csv_fil).unwrap();
     }
 
-    fn parse_column(input: String) -> Record {
+   /*  fn parse_column(input: String) -> Record {
         let record_fields: Vec<_> = input.split(";").collect();
 
         //rows should contain atleast 5 fields
@@ -250,9 +251,9 @@ impl CsvReader {
                 column_e: get_value(record_fields[4]),
                 _column_f: Some(record_fields[5].to_string()),
             }
-        }
+        } */
     }
-}
+
 #[cfg(test)]
 mod test{
     use super::*;
