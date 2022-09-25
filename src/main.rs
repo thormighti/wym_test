@@ -3,7 +3,7 @@ use json_text_xml_cli::CsvReader;
 use std::process;
 
 fn main() {
-    let csv_saver = CsvReader::new();
+    let csv_saver = CsvReader::run();
     if let Err(err) = csv_saver {
         println!("{}", err);
         process::exit(1);

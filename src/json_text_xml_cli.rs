@@ -63,7 +63,7 @@ pub struct CsvReader {
 }
 
 impl CsvReader {
-    pub fn new() -> Result<(), Box<dyn Error>> {
+    pub fn run() -> Result<(), Box<dyn Error>> {
         //builds csv files. awesome stuff
         let mut rdr = csv::ReaderBuilder::new()
             .delimiter(b';')
