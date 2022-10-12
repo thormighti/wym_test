@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{fs::File, env, io, error::Error};
 
 use serde::{Deserialize,Serialize};
 use xml_builder::{XMLBuilder, XMLElement, XMLVersion};
@@ -32,9 +32,7 @@ trait OutputFormatter {
     
 }
 
-pub struct CsvReader{
-    format : Box<dyn OutputFormatter>
-}
+
 
 impl OutputFormatter for OkLineOutput {
      fn json_format(&self) -> &'static str {
@@ -58,6 +56,7 @@ impl OutputFormatter for OkLineOutput {
 impl OutputFormatter for ErrorLineOutput {
     fn json_format(&self) -> &'static str {
         ""
+        // plain function implementation of json format, complete with for loop at csv reader
         
     }
     fn text_formatter(&self) -> &'static str {
@@ -75,3 +74,25 @@ impl OutputFormatter for ErrorLineOutput {
 
     
 }
+pub struct CsvReader{
+    format : Box<dyn OutputFormatter> // we got to find out the format role
+}
+
+impl CsvReader{
+       pub fn run() -> Result<(), Box<dyn Error>> {
+        //builds csv files. awesome stuff
+        let mut rdr = csv::ReaderBuilder::new()
+            .delimiter(b';')
+            .flexible(true)
+            .from_reader(io::stdin());
+
+        let mut count = 0; // track index
+        let args: Vec<String> = env::args().collect();
+
+        //lets get the arg[1]
+        Ok(())
+       }
+}
+
+
+//when we using the traits, go self.outputformat.methods in usage for the public functions
