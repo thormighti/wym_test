@@ -1,0 +1,8 @@
+Lets try using the state pattern
+using the triat output formatter, enum is pretty repetitve so lets try trait.
+trait would have methods for Okline and error line? , methods for xml, json and str first.
+how they interact
+structs for errorLine and Okline and csv reader
+csvreader contains field format with Box<dyn OutputFormatter>// An overkill perfomer wise
+the format field would be handle by the cli args
+//try to make as much less code as possible, possible do plenty code before less code
