@@ -74,6 +74,24 @@ impl OutputFormatter for ErrorLineOutput {
 
     
 }
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Record {
+    //used options incase field is empty, String might be pretty expensive
+    column: Option<String>,
+    #[serde(rename = "columnA")]
+    column_a: Option<String>,
+    #[serde(rename = "columnB")]
+    column_b: Option<String>,
+    #[serde(rename = "columnC")]
+    column_c: Option<i32>,
+    #[serde(deserialize_with = "csv::invalid_option")]
+    #[serde(rename = "columnD")]
+    column_d: Option<i32>,
+    #[serde(rename = "otherColumn")]
+    #[serde(deserialize_with = "csv::invalid_option")]
+    other_column: Option<String>,
+}
+
 pub struct CsvReader{
     format : Box<dyn OutputFormatter> // we got to find out the format role
 }
@@ -88,6 +106,11 @@ impl CsvReader{
 
         let mut count = 0; // track index
         let args: Vec<String> = env::args().collect();
+
+        for result in rdr.deserialize(){
+            let record : Record = result?;
+
+        }
 
         //lets get the arg[1]
         Ok(())
