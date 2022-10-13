@@ -26,24 +26,40 @@ trait OutputFormatter {
     fn format_errorline(&self, line:ErrorLineOutput){
         ()
     }
-    fn json_format(&self) -> & 'static str;
-    fn text_formatter(&self) -> &'static str;
-    fn xml_formatter(&self) -> std::fs::File;
+    fn json_format<'a>(&self, reader: &'a CsvReader) -> & 'static str;
+    fn text_formatter<'a>(&self, reader: &'a CsvReader);
+    fn xml_formatter<'a>(&self, reader: &'a CsvReader) -> std::fs::File;
     
 }
 
 
 
 impl OutputFormatter for OkLineOutput {
-     fn json_format(&self) -> &'static str {
+     fn json_format<'a>(&self, reader: &'a CsvReader) -> &'static str {
         ""
         
     }
-    fn text_formatter(&self) -> &'static str {
-        ""
+    fn text_formatter<'a>(&self, reader: &'a CsvReader)  {
+         let  count = 0;
+       
+        
+        if let (Some(c), Some(d)) = (reader.records.column_c, reader.records.column_d) {
+             let sum_cd = c + d;
+                if sum_cd > 100 {
+                    if let (Some(_a), Some(b)) = (&reader.records.column_a, &reader.records.column_b) {
+                                println!("{}  {}  {}", count + 1, b, c)
+
+
+                }
+               
+            }
+            
+
+        }
+        
         
     }
-    fn xml_formatter(&self) -> std::fs::File {
+    fn xml_formatter<'a>(&self, reader: &'a CsvReader) -> std::fs::File {
         File::create("peter.xml").unwrap()
         
     }
@@ -54,26 +70,41 @@ impl OutputFormatter for OkLineOutput {
 }
 
 impl OutputFormatter for ErrorLineOutput {
-    fn json_format(&self) -> &'static str {
+    fn json_format<'a>(&self,reader: &'a CsvReader) -> &'static str {
         ""
         // plain function implementation of json format, complete with for loop at csv reader
+         // if args[1] = "json"{
+            // do json guys
+        //}
         
     }
-    fn text_formatter(&self) -> &'static str {
-        ""
+    fn text_formatter<'a>(&self, reader: &'a CsvReader) {
+
+        let count = 0;
+         if let (Some(a), Some(b)) = (&reader.records.column_a, &reader.records.column_b) {
+            println!("{}  {}  {}", count + 1, a, b);
+
+         }
         
-    }
-    fn xml_formatter(&self) -> std::fs::File {
+       
+        
+        
+        }
+        
+    
+    fn xml_formatter<'a>(&self, reader: &'a CsvReader) -> std::fs::File {
         File::create("peter.xml").unwrap()
         
     }
 
     fn format_errorline(&self, line:ErrorLineOutput) {
         
+        
     }
 
     
 }
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Record {
     //used options incase field is empty, String might be pretty expensive
@@ -93,11 +124,13 @@ pub struct Record {
 }
 
 pub struct CsvReader{
-    format : Box<dyn OutputFormatter> // we got to find out the format role
+   state : Box<dyn OutputFormatter> ,// we got to find out the format role
+   records: Record
+
 }
 
 impl CsvReader{
-       pub fn run() -> Result<(), Box<dyn Error>> {
+       pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         //builds csv files. awesome stuff
         let mut rdr = csv::ReaderBuilder::new()
             .delimiter(b';')
@@ -108,7 +141,9 @@ impl CsvReader{
         let args: Vec<String> = env::args().collect();
 
         for result in rdr.deserialize(){
-            let record : Record = result?;
+           self.records  = result?;
+           self.state.text_formatter(&CsvReader{state: Box::new(OkLineOutput{}), records:self.records }) // some mess up.lol
+
 
         }
 
